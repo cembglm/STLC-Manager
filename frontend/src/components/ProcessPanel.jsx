@@ -98,6 +98,7 @@ export default function ProcessPanel({
       </div>
 
       <div className="p-4 border-t border-gray-200">
+        console.alert("Process Cem is running");
         <button
           onClick={onRun}
           className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"

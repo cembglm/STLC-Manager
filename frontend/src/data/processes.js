@@ -1,13 +1,15 @@
+import { PROCESS_TYPES } from '../constants/processTypes';
+
 export const processes = [
   {
-    id: 'code-review',
+    id: PROCESS_TYPES.CODE_REVIEW,
     name: 'Code Review',
     details: [
-      'Analyze code quality and identify potential vulnerabilities',
-      'Ensure code adheres to industry standards and best practices',
-      'Prepare the code for testing by eliminating bugs and inefficiencies'
+      'Automated code review using LLM',
+      'Best practices analysis',
+      'Security check'
     ],
-    inputs: ['Source Code', 'Technical Design Document'],
+    inputs: [],
     output: 'Code Review Report'
   },
   {
