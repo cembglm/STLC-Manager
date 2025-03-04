@@ -289,15 +289,28 @@ export default function TabPanel({
           {/* Footer */}
           <div className="flex-none h-16 px-6 flex items-center border-t border-gray-200 bg-white">
             <button
-              onClick={onRun}
-              disabled={activeTab === 'pipeline' && selectedProcesses.size === 0}
+              onClick={() => {
+                if (activeTab !== 'pipeline') {
+                  const foundProcess = processes.find(p => p.id === activeTab);
+                  const hasFiles = processFiles[activeTab]?.length > 0;
+                  
+                  if (!hasFiles) {
+                    window.alert('Please upload files before running the process');
+                    return;
+                  }
+                  
+                  if (foundProcess) {
+                    window.alert(`${foundProcess.name} is started`);
+                    onRun(foundProcess.id, processFiles[activeTab]);
+                  }
+                } else {
+                  onRun();
+                }
+              }}
+              disabled={activeTab === 'pipeline' ? selectedProcesses.size === 0 : !processFiles[activeTab]?.length}
               className={clsx(
                 "w-full py-2 px-4 rounded-md text-white transition-colors shadow-sm",
-                activeTab !== 'pipeline'
-                  ? "bg-indigo-600 hover:bg-indigo-700"
-                  : selectedProcesses.size === 0
-                  ? "bg-gray-300 cursor-not-allowed"
-                  : "bg-indigo-600 hover:bg-indigo-700"
+                !processFiles[activeTab]?.length ? "bg-gray-300 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700"
               )}
             >
               {activeTab === 'pipeline' ? 'Start Pipeline' : 'Run Process'}

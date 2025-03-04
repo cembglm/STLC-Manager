@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import Header from './components/Header';
 import TabPanel from './components/TabPanel';
 import { processes } from './data/processes';
+import { processService } from './services/processService';
+import { codeReviewService } from './services/codeReviewService';
 
 export default function App() {
   const [selectedProcesses, setSelectedProcesses] = useState(new Set());
@@ -60,68 +62,37 @@ export default function App() {
     return missingInputs;
   };
 
-  const executeProcess = async (process) => {
+  const handleProcessRun = async (processId, files) => {
     try {
       setPipelineStatus(prev => ({
         ...prev,
-        [process.id]: 'running'
+        [processId]: 'running'
       }));
 
-      // Simulate process execution with Promise
-      const result = await new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({
-            status: 'success',
-            content: `# ${process.name} Results\n\n## Overview\nProcess completed successfully\n\n## Details\n- Analyzed ${processFiles[process.id]?.length || 0} files\n- Generated test artifacts\n- Validated requirements\n\n## Next Steps\n1. Review generated artifacts\n2. Proceed to next phase\n3. Update documentation`,
-            timestamp: new Date().toISOString()
-          });
-        }, 2000);
-      });
+      let result;
+      if (processId === 'code_review') {  // Using underscore
+        result = await processService.runCodeReview(files);
+        setOutput({
+          content: result.reviews.map(review => 
+            `## ${review.file_name}\n\n${review.review}\n\n---\n`
+          ).join('\n'),
+          status: result.status,
+          processType: 'Code Review',
+          timestamp: new Date().toISOString()
+        });
+      }
 
       setPipelineStatus(prev => ({
         ...prev,
-        [process.id]: 'completed'
+        [processId]: 'completed'
       }));
-
-      return result;
     } catch (error) {
+      console.error('Process execution failed:', error);
+      window.alert(`Process failed: ${error.message}`);
       setPipelineStatus(prev => ({
         ...prev,
-        [process.id]: 'error'
+        [processId]: 'error'
       }));
-      throw error;
-    }
-  };
-
-  const handleProcessRun = async () => {
-    try {
-      setValidationError(null);
-      const missingInputs = validatePipeline();
-      
-      if (missingInputs.length > 0) {
-        const errorMessage = missingInputs.map(({ process, inputs }) => 
-          `${process} is missing: ${inputs.join(', ')}`
-        ).join('\n');
-        
-        setValidationError(errorMessage);
-        return;
-      }
-
-      const selectedProcessList = Array.from(selectedProcesses);
-      for (const processId of selectedProcessList) {
-        const process = processes.find(p => p.id === processId);
-        if (process) {
-          const result = await executeProcess(process);
-          setOutput(result);
-        }
-      }
-    } catch (error) {
-      console.error('Process execution error:', error);
-      setOutput({
-        status: 'error',
-        content: 'An error occurred while executing the process. Please try again.',
-        timestamp: new Date().toISOString()
-      });
     }
   };
 
