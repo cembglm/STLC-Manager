@@ -24,6 +24,7 @@ export default function TabPanel({
   const [tempPrompt, setTempPrompt] = useState('');
   const [showHelp, setShowHelp] = useState(false);
   const [activeSection, setActiveSection] = useState('description');
+  const [outputs, setOutputs] = useState({});
 
   const handleProcessToggle = (processId) => {
     onProcessSelect(processId);
@@ -38,6 +39,12 @@ export default function TabPanel({
   const handleSavePrompt = (processId) => {
     onPromptUpdate(processId, tempPrompt);
     setEditingPrompt(null);
+  };
+
+  const handleRun = (processId, files) => {
+    const output = `Output for ${processId}`;
+    setOutputs((prevOutputs) => ({ ...prevOutputs, [processId]: output }));
+    onRun(processId, files);
   };
 
   const tabs = [
@@ -301,7 +308,7 @@ export default function TabPanel({
                   
                   if (foundProcess) {
                     window.alert(`${foundProcess.name} is started`);
-                    onRun(foundProcess.id, processFiles[activeTab]);
+                    handleRun(foundProcess.id, processFiles[activeTab]);
                   }
                 } else {
                   onRun();
@@ -320,7 +327,7 @@ export default function TabPanel({
 
         {/* Right Panel */}
         <div className="w-1/2 flex flex-col min-h-0">
-          <OutputPanel output={output} />
+          <OutputPanel output={outputs[activeTab]} />
         </div>
       </div>
     </div>

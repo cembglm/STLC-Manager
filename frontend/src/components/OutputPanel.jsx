@@ -17,17 +17,7 @@ export default function OutputPanel({ output }) {
               <h3 className="text-lg font-medium mb-3">Process Results</h3>
               <div className="bg-gray-50 rounded-lg p-4">
                 <div className="prose prose-sm max-w-none text-gray-600">
-                  <ReactMarkdown>{output.content}</ReactMarkdown>
-                </div>
-              </div>
-            </section>
-            
-            <section>
-              <h3 className="text-lg font-medium mb-3">Execution Details</h3>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="text-gray-600">
-                  <p><strong>Status:</strong> {output.status}</p>
-                  <p><strong>Last Updated:</strong> {new Date(output.timestamp).toLocaleString()}</p>
+                  <ReactMarkdown>{output}</ReactMarkdown>
                 </div>
               </div>
             </section>
