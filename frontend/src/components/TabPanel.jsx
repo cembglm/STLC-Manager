@@ -18,7 +18,13 @@ export default function TabPanel({
   pipelineStatus,
   onRun,
   validationError,
-  output
+  output,
+  managedFiles,
+  fileProcessMappings,
+  onFileProcessMapping,
+  onFileDelete,
+  selectedFileIds,
+  setSelectedFileIds
 }) {
   const [editingPrompt, setEditingPrompt] = useState(null);
   const [tempPrompt, setTempPrompt] = useState('');
@@ -48,6 +54,7 @@ export default function TabPanel({
   };
 
   const tabs = [
+    { id: 'files', name: 'File Management' },
     { id: 'pipeline', name: 'Pipeline' },
     ...processes.map(process => ({
       id: process.id,
@@ -59,29 +66,84 @@ export default function TabPanel({
     { id: 'description', name: 'Description' },
     { id: 'inputs', name: 'Required Inputs' },
     { id: 'configuration', name: 'Process Configuration' },
-    { id: 'files', name: 'Files' },
     { id: 'prompt', name: 'Prompt' }
   ];
 
   const renderHelpContent = () => (
     <ul className="list-disc pl-5 text-blue-700 space-y-1">
-      {activeTab === 'pipeline' ? (
+      {activeTab === 'files' ? (
+        <>
+          <li>You can upload all your files here</li>
+          <li>Select processes to be used for each file</li>
+          <li>You can delete or edit files</li>
+        </>
+      ) : activeTab === 'pipeline' ? (
         <>
           <li>Select processes using the checkboxes above</li>
-          <li>Processes will execute in the order shown</li>
-          <li>Ensure all required inputs are provided</li>
-          <li>Click "Start Pipeline" when ready</li>
+          <li>Processes will run in the shown order</li>
+          <li>Make sure all required inputs are provided</li>
+          <li>Click "Start Pipeline" button</li>
         </>
       ) : (
         <>
-          <li>Navigate through sections using the tabs above</li>
+          <li>Navigate between sections using the tabs above</li>
           <li>Complete each section before running the process</li>
           <li>Required fields are marked with an asterisk (*)</li>
-          <li>Click "Run Process" when ready</li>
+          <li>Click "Run Process" button</li>
         </>
       )}
     </ul>
   );
+
+  const renderProcessContent = (processId) => {
+    switch (activeSection) {
+      case 'description':
+        return (
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-gray-900">Process Description</h3>
+            {/* Add process description content */}
+          </div>
+        );
+      case 'inputs':
+        return (
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-gray-900">Select Input Files</h3>
+            <div className="bg-white rounded-lg shadow p-4">
+              <h4 className="text-sm font-medium text-gray-700 mb-3">Available Files</h4>
+              {managedFiles.length === 0 ? (
+                <p className="text-gray-500 text-sm">No files uploaded yet. Please upload files in File Management.</p>
+              ) : (
+                <div className="space-y-2">
+                  {managedFiles.map(file => (
+                    <div key={file.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md">
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={fileProcessMappings[file.id]?.includes(processId) || false}
+                          onChange={() => {
+                            const currentProcesses = fileProcessMappings[file.id] || [];
+                            const updatedProcesses = currentProcesses.includes(processId)
+                              ? currentProcesses.filter(p => p !== processId)
+                              : [...currentProcesses, processId];
+                            onFileProcessMapping(file.id, updatedProcesses);
+                          }}
+                          className="h-4 w-4 text-indigo-600 rounded border-gray-300"
+                        />
+                        <div className="ml-3">
+                          <p className="text-sm font-medium text-gray-700">{file.name}</p>
+                          <p className="text-xs text-gray-500">{file.type}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      // ... other cases ...
+    }
+  };
 
   return (
     <div className="flex flex-col h-full w-full">
@@ -97,7 +159,7 @@ export default function TabPanel({
               )}
             >
               <div className="flex items-center px-3 py-2">
-                {tab.id !== 'pipeline' && (
+                {tab.id !== 'pipeline' && tab.id !== 'files' && (
                   <input
                     type="checkbox"
                     checked={selectedProcesses.has(tab.id)}
@@ -132,7 +194,9 @@ export default function TabPanel({
           {/* Header */}
           <div className="flex-none h-16 px-6 flex items-center justify-between border-b border-gray-200 bg-white">
             <h2 className="text-xl font-bold text-gray-900">
-              {activeTab === 'pipeline' ? 'Pipeline Configuration' : processes.find(p => p.id === activeTab)?.name}
+              {activeTab === 'files' ? 'File Management' :
+               activeTab === 'pipeline' ? 'Pipeline Configuration' : 
+               processes.find(p => p.id === activeTab)?.name}
             </h2>
             <button
               onClick={() => setShowHelp(!showHelp)}
@@ -143,8 +207,8 @@ export default function TabPanel({
             </button>
           </div>
 
-          {/* Section Tabs */}
-          {activeTab !== 'pipeline' && (
+          {/* Section Tabs - Only show for process tabs, NOT for file management */}
+          {activeTab !== 'pipeline' && activeTab !== 'files' && (
             <div className="flex-none border-b border-gray-200 bg-white">
               <div className="px-6 py-2 flex flex-wrap gap-1">
                 {sections.map((section) => (
@@ -170,13 +234,26 @@ export default function TabPanel({
             {showHelp && (
               <div className="bg-blue-50 p-4 rounded-lg mb-4">
                 <h3 className="font-medium text-blue-800 mb-2">
-                  {activeTab === 'pipeline' ? 'Pipeline Guide' : 'Process Guide'}
+                  {activeTab === 'files' ? 'File Management Guide' :
+                   activeTab === 'pipeline' ? 'Pipeline Guide' : 
+                   'Process Guide'}
                 </h3>
                 {renderHelpContent()}
               </div>
             )}
 
-            {activeTab === 'pipeline' ? (
+            {activeTab === 'files' ? (
+              <FileUpload
+                onFileUpload={onFileUpload}
+                managedFiles={managedFiles}
+                fileProcessMappings={fileProcessMappings}
+                onFileProcessMapping={onFileProcessMapping}
+                onFileDelete={onFileDelete}
+                processes={processes}
+                selectedFileIds={selectedFileIds}
+                setSelectedFileIds={setSelectedFileIds}
+              />
+            ) : activeTab === 'pipeline' ? (
               <div className="space-y-4">
                 {processes
                   .filter(p => selectedProcesses.has(p.id))
@@ -295,33 +372,39 @@ export default function TabPanel({
 
           {/* Footer */}
           <div className="flex-none h-16 px-6 flex items-center border-t border-gray-200 bg-white">
-            <button
-              onClick={() => {
-                if (activeTab !== 'pipeline') {
-                  const foundProcess = processes.find(p => p.id === activeTab);
-                  const hasFiles = processFiles[activeTab]?.length > 0;
-                  
-                  if (!hasFiles) {
-                    window.alert('Please upload files before running the process');
-                    return;
+            {activeTab !== 'files' && (
+              <button
+                onClick={() => {
+                  if (activeTab !== 'pipeline') {
+                    const foundProcess = processes.find(p => p.id === activeTab);
+                    const relevantFiles = managedFiles.filter(file => 
+                      fileProcessMappings[file.id]?.includes(activeTab)
+                    );
+                    
+                    if (relevantFiles.length === 0) {
+                      window.alert('Please select files for this process');
+                      return;
+                    }
+                    
+                    if (foundProcess) {
+                      window.alert(`Starting ${foundProcess.name}`);
+                      onRun(foundProcess.id);
+                    }
+                  } else {
+                    onRun();
                   }
-                  
-                  if (foundProcess) {
-                    window.alert(`${foundProcess.name} is started`);
-                    handleRun(foundProcess.id, processFiles[activeTab]);
-                  }
-                } else {
-                  onRun();
-                }
-              }}
-              disabled={activeTab === 'pipeline' ? selectedProcesses.size === 0 : !processFiles[activeTab]?.length}
-              className={clsx(
-                "w-full py-2 px-4 rounded-md text-white transition-colors shadow-sm",
-                !processFiles[activeTab]?.length ? "bg-gray-300 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700"
-              )}
-            >
-              {activeTab === 'pipeline' ? 'Start Pipeline' : 'Run Process'}
-            </button>
+                }}
+                disabled={activeTab === 'pipeline' ? selectedProcesses.size === 0 : false}
+                className={clsx(
+                  "w-full py-2 px-4 rounded-md text-white transition-colors shadow-sm",
+                  (activeTab === 'pipeline' && selectedProcesses.size === 0) 
+                    ? "bg-gray-300 cursor-not-allowed" 
+                    : "bg-indigo-600 hover:bg-indigo-700"
+                )}
+              >
+                {activeTab === 'pipeline' ? 'Start Pipeline' : 'Run Process'}
+              </button>
+            )}
           </div>
         </div>
 
