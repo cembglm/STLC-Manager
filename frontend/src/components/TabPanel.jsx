@@ -29,8 +29,6 @@ export default function TabPanel({
   const [editingPrompt, setEditingPrompt] = useState(null);
   const [tempPrompt, setTempPrompt] = useState('');
   const [showHelp, setShowHelp] = useState(false);
-  const [activeSection, setActiveSection] = useState('description');
-  const [outputs, setOutputs] = useState({});
 
   const handleProcessToggle = (processId) => {
     onProcessSelect(processId);
@@ -49,7 +47,6 @@ export default function TabPanel({
 
   const handleRun = (processId, files) => {
     const output = `Output for ${processId}`;
-    setOutputs((prevOutputs) => ({ ...prevOutputs, [processId]: output }));
     onRun(processId, files);
   };
 
@@ -60,13 +57,6 @@ export default function TabPanel({
       id: process.id,
       name: process.name
     }))
-  ];
-
-  const sections = [
-    { id: 'description', name: 'Description' },
-    { id: 'inputs', name: 'Required Inputs' },
-    { id: 'configuration', name: 'Process Configuration' },
-    { id: 'prompt', name: 'Prompt' }
   ];
 
   const renderHelpContent = () => (
@@ -96,53 +86,109 @@ export default function TabPanel({
   );
 
   const renderProcessContent = (processId) => {
-    switch (activeSection) {
-      case 'description':
-        return (
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">Process Description</h3>
-            {/* Add process description content */}
-          </div>
-        );
-      case 'inputs':
-        return (
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">Select Input Files</h3>
-            <div className="bg-white rounded-lg shadow p-4">
-              <h4 className="text-sm font-medium text-gray-700 mb-3">Available Files</h4>
-              {managedFiles.length === 0 ? (
-                <p className="text-gray-500 text-sm">No files uploaded yet. Please upload files in File Management.</p>
-              ) : (
-                <div className="space-y-2">
-                  {managedFiles.map(file => (
-                    <div key={file.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md">
-                      <div className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={fileProcessMappings[file.id]?.includes(processId) || false}
-                          onChange={() => {
-                            const currentProcesses = fileProcessMappings[file.id] || [];
-                            const updatedProcesses = currentProcesses.includes(processId)
-                              ? currentProcesses.filter(p => p !== processId)
-                              : [...currentProcesses, processId];
-                            onFileProcessMapping(file.id, updatedProcesses);
-                          }}
-                          className="h-4 w-4 text-indigo-600 rounded border-gray-300"
-                        />
-                        <div className="ml-3">
-                          <p className="text-sm font-medium text-gray-700">{file.name}</p>
-                          <p className="text-xs text-gray-500">{file.type}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+    const process = processes.find(p => p.id === processId);
+    
+    return (
+      <div className="space-y-6">
+        {/* Process Description */}
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Process Description</h3>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <div className="space-y-2 text-gray-600">
+              {process?.details.map((detail, index) => (
+                <p key={`detail-${index}`}>{detail}</p>
+              ))}
             </div>
           </div>
-        );
-      // ... other cases ...
-    }
+        </div>
+
+        {/* File Selection Section */}
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Select Input Files</h3>
+          <div className="space-y-4">
+            {managedFiles.length === 0 ? (
+              <p className="text-gray-500">No files uploaded yet. Please upload files in File Management.</p>
+            ) : (
+              <div className="space-y-2">
+                {managedFiles.map(file => (
+                  <div 
+                    key={file.id} 
+                    className="flex items-center p-3 hover:bg-gray-50 rounded-lg border border-gray-200"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={fileProcessMappings[file.id]?.includes(processId) || false}
+                      onChange={() => {
+                        const currentProcesses = fileProcessMappings[file.id] || [];
+                        const updatedProcesses = currentProcesses.includes(processId)
+                          ? currentProcesses.filter(p => p !== processId)
+                          : [...currentProcesses, processId];
+                        onFileProcessMapping(file.id, updatedProcesses);
+                      }}
+                      className="h-4 w-4 text-indigo-600 rounded border-gray-300"
+                    />
+                    <div className="ml-3">
+                      <p className="text-sm font-medium text-gray-700">{file.name}</p>
+                      <p className="text-xs text-gray-500">{file.type}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Process Configuration */}
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Process Configuration</h3>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <p className="text-gray-600">Configure settings for {process?.name}</p>
+          </div>
+        </div>
+
+        {/* Prompt Section */}
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Process Prompt</h3>
+          {editingPrompt === processId ? (
+            <div className="space-y-3">
+              <PromptEditor
+                value={tempPrompt}
+                onChange={setTempPrompt}
+                placeholder={`Customize prompt for ${process?.name}...`}
+              />
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => handleSavePrompt(processId)}
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => setEditingPrompt(null)}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="bg-gray-50 rounded-lg p-4">
+                <p className="text-gray-600">
+                  {processPrompts[processId] || process?.defaultPrompt || 'No prompt set'}
+                </p>
+              </div>
+              <button
+                onClick={() => handleEditPrompt(processId)}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+              >
+                Edit
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -207,28 +253,6 @@ export default function TabPanel({
             </button>
           </div>
 
-          {/* Section Tabs - Only show for process tabs, NOT for file management */}
-          {activeTab !== 'pipeline' && activeTab !== 'files' && (
-            <div className="flex-none border-b border-gray-200 bg-white">
-              <div className="px-6 py-2 flex flex-wrap gap-1">
-                {sections.map((section) => (
-                  <button
-                    key={section.id}
-                    onClick={() => setActiveSection(section.id)}
-                    className={clsx(
-                      'px-3 py-2 text-sm font-medium rounded-md transition-colors',
-                      activeSection === section.id
-                        ? 'bg-indigo-100 text-indigo-700'
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                    )}
-                  >
-                    {section.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-4">
             {showHelp && (
@@ -246,12 +270,8 @@ export default function TabPanel({
               <FileUpload
                 onFileUpload={onFileUpload}
                 managedFiles={managedFiles}
-                fileProcessMappings={fileProcessMappings}
-                onFileProcessMapping={onFileProcessMapping}
                 onFileDelete={onFileDelete}
                 processes={processes}
-                selectedFileIds={selectedFileIds}
-                setSelectedFileIds={setSelectedFileIds}
               />
             ) : activeTab === 'pipeline' ? (
               <div className="space-y-4">
@@ -284,89 +304,7 @@ export default function TabPanel({
                 )}
               </div>
             ) : (
-              <div className="space-y-4">
-                {processes
-                  .filter(process => process.id === activeTab)
-                  .map(process => {
-                    const sectionContent = {
-                      description: (
-                        <div key="description" className="bg-gray-50 rounded-lg p-4">
-                          <div className="space-y-2 text-gray-600">
-                            {process.details.map((detail, index) => (
-                              <p key={`detail-${index}`}>{detail}</p>
-                            ))}
-                          </div>
-                        </div>
-                      ),
-                      inputs: (
-                        <div key="inputs" className="bg-gray-50 rounded-lg p-4">
-                          <ul className="list-disc pl-5 space-y-1 text-gray-600">
-                            {process.inputs.map((input, index) => (
-                              <li key={`input-${index}`}>{input}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      ),
-                      configuration: (
-                        <div key="configuration" className="bg-gray-50 rounded-lg p-4">
-                          <p className="text-gray-600">Configure settings for {process.name}</p>
-                        </div>
-                      ),
-                      files: (
-                        <FileUpload
-                          key="files"
-                          processId={process.id}
-                          onFilesSelected={onFileUpload}
-                          existingFiles={processFiles[process.id]}
-                          allowMultiple={true}
-                        />
-                      ),
-                      prompt: (
-                        <div key="prompt">
-                          {editingPrompt === process.id ? (
-                            <div className="space-y-3">
-                              <PromptEditor
-                                value={tempPrompt}
-                                onChange={setTempPrompt}
-                                placeholder={`Customize prompt for ${process.name}...`}
-                              />
-                              <div className="flex space-x-2">
-                                <button
-                                  onClick={() => handleSavePrompt(process.id)}
-                                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-                                >
-                                  Save
-                                </button>
-                                <button
-                                  onClick={() => setEditingPrompt(null)}
-                                  className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="space-y-3">
-                              <div className="bg-gray-50 rounded-lg p-4">
-                                <p className="text-gray-600">
-                                  {processPrompts[process.id] || process.defaultPrompt || 'No prompt set'}
-                                </p>
-                              </div>
-                              <button
-                                onClick={() => handleEditPrompt(process.id)}
-                                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
-                              >
-                                Edit
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )
-                    };
-
-                    return sectionContent[activeSection];
-                  })}
-              </div>
+              renderProcessContent(activeTab)
             )}
           </div>
 
@@ -410,7 +348,7 @@ export default function TabPanel({
 
         {/* Right Panel */}
         <div className="w-1/2 flex flex-col min-h-0">
-          <OutputPanel output={outputs[activeTab]} />
+          <OutputPanel output={output} />
         </div>
       </div>
     </div>
