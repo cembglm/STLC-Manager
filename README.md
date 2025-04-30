@@ -157,13 +157,3 @@ flowchart LR
 4. **Kullanım Senaryoları:**
    - **Tek Adım**: Örneğin, `Test Planning` adımını tek başına çalıştırmak için UI’daki ilgili sayfadan dosya yükleyip “Çalıştır” butonuna basabilirsiniz.  
    - **Pipeline**: Checkbox’larla birden fazla adım (örn. `Test Planning`, `Test Case Generation`, `Test Reporting`) seçilip “Pipeline Çalıştır” denildiğinde, adımlar sırasıyla çalıştırılır ve toplu sonuç ekranda gösterilir.
-
-## Katkıda Bulunma
-
-- Yeni STLC adımları eklemek için `stlc` klasörüne `.py` dosyası ekleyip `run_step` fonksiyonunu tanımlayın.  
-- Yeni bir model veya farklı bir vektör veritabanı eklemek için `core/model_client.py` veya `core/database.py` dosyalarında değişiklik yapın.  
-- Pull Request’ler, bug raporları ve geliştirme önerileri memnuniyetle karşılanır!
-
-## Lisans
-
-Bu proje örnek bir yapıdır ve kendi kullanımınız için özelleştirebilirsiniz. Lisans koşullarını proje sahibiyle veya ekibinizle belirleyin.
