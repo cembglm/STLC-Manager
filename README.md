@@ -1,5 +1,88 @@
 # STLC Manager
 
+# Download and Installation Guide
+
+This document explains the necessary steps to download and run the STLC Manager project on your local machine.
+
+## Prerequisites
+
+Before starting the installation, make sure the following software is installed on your system:
+
+- **Git:** Required to clone the project. [https://git-scm.com/](https://git-scm.com/)
+- **Node.js and npm:** Required to run the frontend (React) application. [https://nodejs.org/](https://nodejs.org/)
+- **Python and pip:** Required to run the backend (FastAPI) application. [https://www.python.org/](https://www.python.org/)
+
+## 1. Download the Project (Cloning)
+
+Open a terminal or command prompt and run the following command to clone the project from GitHub (or its hosting location):
+
+```bash
+git clone <project_repository_url> STLC-Manager
+cd STLC-Manager
+```
+
+## 2. Backend Setup
+To set up and run the backend application (FastAPI), follow these steps:
+
+Navigate to the backend directory:
+
+```bash
+cd backend
+```
+Install the required Python packages:
+
+```bash
+pip install -r requirements.txt
+```
+This command will install all dependencies listed in the requirements.txt file.
+
+Start the backend application:
+
+```bash
+python app.py
+```
+
+## 3. Frontend Setup
+To set up and run the frontend application (React), follow these steps:
+
+Return to the project root directory (if you're in the backend folder):
+
+```bash
+cd ..
+```
+Navigate to the frontend directory:
+
+```bash
+cd frontend
+```
+Install the required Node.js packages:
+
+```bash
+npm install
+```
+This command will install all dependencies listed in the package.json file.
+
+Start the frontend development server:
+
+```bash
+npm run dev
+```
+By default, the application will start running at http://localhost:5173 (or another port depending on the Vite/CRA configuration). You should see the corresponding address in the terminal.
+
+## 4. Environment Variables
+To ensure proper functionality of the project, you may need to set up some environment variables.
+You can define these variables by creating .env files in the project root (or separately in the backend and frontend directories).
+
+## 5. Running the Application
+Once both backend and frontend servers have started successfully:
+
+Open your web browser.
+
+Go to the address where the frontend application is running (e.g., http://localhost:5173).
+
+You should see the STLC Manager interface. You can now start using the application.
+
+## Adımlar
 Bu proje, **Software Testing Life Cycle (STLC)** adımlarını yönetmek ve otomasyonunu sağlamak amacıyla oluşturulmuş bir Full Stack örneğidir.  
 **STLC** aşağıdaki 12 adımı içerir (ancak dilediğiniz gibi özelleştirilebilir):
 
