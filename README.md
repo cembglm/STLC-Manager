@@ -185,22 +185,6 @@ STLC-Manager/
 - **text_splitter.py**: Metin parçalama (chunking) işlemleri.  
 - **validation.py**: LLM çıktılarının (structured_output) istenen formata uygunluğunu doğrulama.
 
-## Akış Diyagramı (Mermaid)
-
-Aşağıda, bir pipeline çalıştırma senaryosunun genel akışını gösteren basit bir **Mermaid** diyagramı bulunuyor:
-
-```mermaid
-flowchart LR
-    A[UI / Frontend] --> B[Pipeline Controller]
-    B --> C[Pipeline Executor]
-    C --> D[STLC Adım 1 (Ör: Test Planning)]
-    C --> E[STLC Adım 2 (Ör: Test Case Generation)]
-    C --> F[STLC Adım 3 (Ör: Test Reporting)]
-    D --> C
-    E --> C
-    F --> G[Nihai Sonuç Dönüşü]
-```
-
 1. **UI / Frontend**: Kullanıcı, hangi STLC adımlarının seçileceğini belirler (checkbox vb.).  
 2. **Pipeline Controller**: Seçilen adımları analiz eder, sırayı belirler.  
 3. **Pipeline Executor**: Sırayla her STLC modülünün `run_step` fonksiyonunu çağırır.  
